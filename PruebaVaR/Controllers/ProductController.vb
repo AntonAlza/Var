@@ -1,5 +1,5 @@
 ﻿Imports System.Web.Mvc
-Imports Excel = Microsoft.Office.Interop
+Imports Microsoft.Office.Interop
 Imports System.IO
 
 
@@ -7,15 +7,16 @@ Imports System.IO
 Namespace Controllers
     Public Class ProductController
         Inherits Controller
-
+        Dim Lista As List(Of Prueba) = New List(Of Prueba)
         ' GET: Product
         Function Index() As ActionResult
+            ViewBag.Lista = Lista
             Return View()
         End Function
 
 
         <HttpPost()>
-        Function Import(ByVal excelfile As HttpPostedFileBase) As ActionResult
+        Function Index(ByVal excelfile As HttpPostedFileBase) As ActionResult
 
             If (excelfile Is Nothing Or excelfile.ContentLength = 0) Then
                 ViewBag.Error = "Por favor ingrese Excel<br>"
@@ -24,18 +25,18 @@ Namespace Controllers
                 If (excelfile.FileName.EndsWith("xls") Or excelfile.FileName.EndsWith("xlsx")) Then
                     Dim path As String = Server.MapPath("~/Content/" + excelfile.FileName)
                     If (System.IO.File.Exists(path)) Then
-                        'System.IO.File.Delete(path)
+                        System.IO.File.Delete(path)
                     End If
-                    'excelfile.SaveAs(path)
-                    Dim application As Excel.Excel.Application = New Excel.Excel.Application
-                    Dim WorkBook As Excel.Excel.Workbook = application.Workbooks.Open(path)
-                    Dim WorkSheet As Excel.Excel.Worksheet = WorkBook.ActiveSheet
-                    Dim Range As Excel.Excel.Range = WorkSheet.UsedRange
+                    excelfile.SaveAs(path)
+                    Dim application As Excel.Application = New Excel.Application
+                    Dim WorkBook As Excel.Workbook = application.Workbooks.Open(path)
+                    Dim WorkSheet As Excel.Worksheet = WorkBook.ActiveSheet
+                    Dim Range As Excel.Range = WorkSheet.UsedRange
                     Dim i As Integer
-                    Dim Lista As List(Of Prueba) = New List(Of Prueba)
 
 
-                    For i = 14 To Range.Rows.Count
+
+                    For i = 5 To Range.Rows.Count
                         Dim p As Prueba = New Prueba
                         p.area = Range.Cells(i, 1).ToString
                         p.elemento = Range.Cells(i, 2).ToString
@@ -48,9 +49,10 @@ Namespace Controllers
                         Lista.Add(p)
                     Next
                     ViewBag.Lista = Lista
-                    Return View("Success")
-                    Else
-                        ViewBag.Error = "Archivo Incorrecto <br>"
+                    Return View("Index")
+                    WorkBook.Close(path)
+                Else
+                    ViewBag.Error = "Archivo Incorrecto <br>"
                     Return View("Index")
                 End If
             End If
